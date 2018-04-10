@@ -3,7 +3,7 @@ A JavaScript library for seamlessly uploading multiple files from a web page.
 
 ### Example
 ```
-    launchPad({
+    var fn = launchPad({
         buttons: document.getElementById('upload'),
         dropTargets: document.getElementById('droptarget'),
         url: '/upload',
@@ -16,7 +16,7 @@ A JavaScript library for seamlessly uploading multiple files from a web page.
 ### Options
 | Argument |  | Default | Description |
 | --- | --- | --- | --- |
-| `dropTarget` | Optional | | An array of DOM elements used to drop files into from the user's PC |
+| `dropTargets` | Optional | | An array of DOM elements used to drop files into from the user's PC |
 | `buttons` | Optional | | An array of DOM elements used to display a file dialog (on click) |
 | `url` | Required | | The URL to upload files to |
 | `method` | Optional | `"POST"` | The method used to upload files with |
@@ -40,5 +40,5 @@ A JavaScript library for seamlessly uploading multiple files from a web page.
 | --- | --- |
 | `upload` | Begins uploading queue to the specified URL. If `autoUpload` is set to `false`, use this method to manually upload files.  |
 
-
+> NOTE: In the example above, `fn` refers to SpaceX' Falcon 9 Rocket for comedic purposes.
 
