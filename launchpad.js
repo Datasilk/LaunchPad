@@ -59,12 +59,13 @@
         }
 
         //attach buttons to click event
-        if (typeof this.buttons == 'object') {
+        if (typeof this.buttons == 'object' && this.buttons.style) {
             this.buttons = [this.buttons];
         }
+        console.log(typeof this.buttons);
+        console.log(this.buttons);
         for (var x = 0; x < this.buttons.length; x++) {
-            console.log(this.buttons[x]);
-            this.buttons[x].addEventListener('click', uploadClick.bind(this));
+            this.buttons[x].addEventListener('click', this.click.bind(this));
         }
 
         //generate hidden input field
@@ -82,7 +83,7 @@
         input.addEventListener('change', uploadChanged.bind(this));
     }
 
-    function uploadClick() {
+    uploader.prototype.click = function() {
         //show file dialog
         var input = document.getElementById('hdnuploader');
         input.click();
@@ -98,7 +99,7 @@
     }
 
     function addFilesToQueue(files) {
-        for (var x in files) {
+        for (var x = 0; x < files.length; x++) {
             if (this.queue.filter((a) => a.name == files[x].name).length == 0) {
                 this.queue.push(files[x]);
             }
@@ -116,12 +117,10 @@
         xhr.addEventListener("load", uploadComplete.bind(this));
         xhr.addEventListener("error", uploadError.bind(this));
         xhr.addEventListener("abort", uploadAbort.bind(this));
-        xhr.open(this.method, this.url);
 
         //append files from queue
         var data = new FormData();
         var files = this.queue.splice(0, this.parallelUploads);
-
         //raise event so user can manipulate xhr or data if needed
         if (typeof this.onUploadStart == 'function') {
             this.onUploadStart(files, xhr, data);
@@ -132,6 +131,7 @@
         }
 
         //begin uploading
+        xhr.open(this.method, this.url);
         xhr.send(data);
     }
 
@@ -147,7 +147,18 @@
     }
 
     function uploadComplete(e) {
-
+        //raise event so user can process upload complete
+        if (typeof this.onUploadComplete == 'function') {
+            this.onUploadComplete();
+        }
+        if (this.queue.length == 0) {
+            //raise event so user can process queue complete
+            if (typeof this.onQueueComplete == 'function') {
+                this.onQueueComplete();
+            }
+        } else {
+            this.upload();
+        }
     }
 
     function uploadError(e) {
