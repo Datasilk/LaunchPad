@@ -62,8 +62,6 @@
         if (typeof this.buttons == 'object' && this.buttons.style) {
             this.buttons = [this.buttons];
         }
-        console.log(typeof this.buttons);
-        console.log(this.buttons);
         for (var x = 0; x < this.buttons.length; x++) {
             this.buttons[x].addEventListener('click', this.click.bind(this));
         }
