@@ -21,6 +21,8 @@
         onUploadStart: null, //called for every upload in queue. (args = iFormFile[], xhr, FormData)
         onUploadProgress: null, //called in intervals when upload is in progress. (args = event, percent)
         onUploadComplete: null, 
+        onUploadError: null, 
+        onUploadAbort: null, 
         onQueueComplete: null
     };
 
@@ -45,6 +47,8 @@
         this.onUploadStart = options.onUploadStart || defaults.onUploadStart;
         this.onUploadProgress = options.onUploadProgress || defaults.onUploadProgress;
         this.onUploadComplete = options.onUploadComplete || defaults.onUploadComplete;
+        this.onUploadError = options.onUploadError || defaults.onUploadError;
+        this.onUploadAbort = options.onUploadAbort || defaults.onUploadAbort;
         this.onQueueComplete = options.onQueueComplete || defaults.onQueueComplete;
 
         //files
@@ -160,11 +164,33 @@
     }
 
     function uploadError(e) {
-
+        //raise event so user can process upload error
+        if (typeof this.onUploadError == 'function') {
+            this.onUploadError();
+        }
+        if (this.queue.length == 0) {
+            //raise event so user can process queue complete
+            if (typeof this.onQueueComplete == 'function') {
+                this.onQueueComplete();
+            }
+        } else {
+            this.upload();
+        }
     }
 
     function uploadAbort(e) {
-
+        //raise event so user can process upload error
+        if (typeof this.onUploadAbort == 'function') {
+            this.onUploadAbort();
+        }
+        if (this.queue.length == 0) {
+            //raise event so user can process queue complete
+            if (typeof this.onQueueComplete == 'function') {
+                this.onQueueComplete();
+            }
+        } else {
+            this.upload();
+        }
     }
     
     //finally, expose uploader to the window as a global object
