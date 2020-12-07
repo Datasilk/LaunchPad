@@ -27,6 +27,8 @@
     };
 
     function uploader(options) {
+        this.id = 'uploader_' + Math.round(Math.random() * 9999);
+
         //instance options
         this.dropTargets = options.dropTargets || defaults.dropTargets;
         this.buttons = options.buttons || defaults.buttons;
@@ -66,13 +68,14 @@
         if (typeof this.buttons == 'object' && this.buttons.style) {
             this.buttons = [this.buttons];
         }
+        var self = this;
         for (var x = 0; x < this.buttons.length; x++) {
-            this.buttons[x].addEventListener('click', this.click.bind(this));
+            this.buttons[x].addEventListener('click', () => { self.click(self.id) });
         }
 
         //generate hidden input field
         document.body.insertAdjacentHTML('beforeend',
-            '<input type="file" id="hdnuploader"' +
+            '<input type="file" id="' + this.id + '"' +
             (this.multipleUploads == true ? ' multiple= "true"' : '') +
             (this.fileTypes != '' ? ' accept= "' + this.fileTypes + '"' : '') +
             (this.capture == true ? ' capture="true"' : '') +
@@ -81,14 +84,14 @@
         );
 
         //set up events for hidden input field
-        var input = document.getElementById('hdnuploader');
+        var input = document.getElementById(this.id);
         input.addEventListener('change', uploadChanged.bind(this));
-    }
 
-    uploader.prototype.click = function() {
-        //show file dialog
-        var input = document.getElementById('hdnuploader');
-        input.click();
+        this.click = function () {
+            //show file dialog
+            var input = document.getElementById(self.id);
+            input.click();
+        }
     }
 
     function uploadDrop() {
