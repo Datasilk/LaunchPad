@@ -5,10 +5,11 @@
         buttons: [], //array of buttons that opens a file dialog
         url: '', //URL to upload files to
         method: 'POST', //method to use when uploading
+        name: 'file', //name of form field to use for files
         multipleUploads: true, //allow user to select multiple files in the file dialog
         directoryDialog: false, //allow user to select a directory instead of files
         parallelUploads: 2, //total uploads to process at a given time
-        maxFilesize: 1024 * 10, //bytes * megabytes
+        maxFilesize: 1024 * 1024 * 10, //bytes * kilobytes * megabytes
         fileTypes: '', //filter specific file extensions
         autoUpload: true, //uploads files once selected or dropped
         capture: false, //used to capture a file from a "media capture mechanism", such as a webcam
@@ -34,12 +35,13 @@
         this.buttons = options.buttons || defaults.buttons;
         this.url = options.url || defaults.url;
         this.method = options.method || defaults.method;
-        this.multipleUploads = options.multipleUploads === true ? options.multipleUploads : defaults.multipleUploads;
+        this.name = options.name || defaults.name;
+        this.multipleUploads = options.multipleUploads != null ? options.multipleUploads : defaults.multipleUploads;
         this.parallelUploads = options.parallelUploads || defaults.parallelUploads;
         this.maxFilesize = options.maxFilesize || defaults.maxFilesize;
         this.fileTypes = options.fileTypes || defaults.fileTypes;
-        this.autoUpload = options.autoUpload === true ? options.autoUpload : defaults.autoUpload;
-        this.capture = options.capture === true ? options.capture : defaults.capture;
+        this.autoUpload = options.autoUpload != null ? options.autoUpload : defaults.autoUpload;
+        this.capture = options.capture != null ? options.capture : defaults.capture;
 
         //thumbnails
         this.thumbnailWidth = options.thumbnailWidth || defaults.thumbnailWidth;
@@ -130,9 +132,8 @@
         if (typeof this.onUploadStart == 'function') {
             this.onUploadStart(files, xhr, data);
         }
-        
         for (var x = 0; x < files.length; x++) {
-            data.append('file[' + x + ']', files[x], files[x].name);
+            data.append(this.name + '[' + x + ']', files[x], files[x].name);
         }
 
         //begin uploading
