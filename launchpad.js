@@ -94,6 +94,30 @@
             var input = document.getElementById(self.id);
             input.click();
         }
+
+        this.upload = function () {
+            //creates an XHR object and uploads files in queue
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("progress", uploadProgress.bind(this));
+            xhr.addEventListener("load", uploadComplete.bind(this));
+            xhr.addEventListener("error", uploadError.bind(this));
+            xhr.addEventListener("abort", uploadAbort.bind(this));
+
+            //append files from queue
+            var data = new FormData();
+            var files = this.queue.splice(0, this.parallelUploads);
+            //raise event so user can manipulate xhr or data if needed
+            if (typeof this.onUploadStart == 'function') {
+                this.onUploadStart(files, xhr, data);
+            }
+            for (var x = 0; x < files.length; x++) {
+                data.append(this.name + '[' + x + ']', files[x], files[x].name);
+            }
+
+            //begin uploading
+            xhr.open(this.method, this.url);
+            xhr.send(data);
+        }
     }
 
     function uploadDrop() {
@@ -115,30 +139,6 @@
             //auto upload after adding new files to queue
             this.upload();
         }
-    }
-
-    uploader.prototype.upload = function () {
-        //creates an XHR object and uploads files in queue
-        var xhr = new XMLHttpRequest();
-        xhr.addEventListener("progress", uploadProgress.bind(this));
-        xhr.addEventListener("load", uploadComplete.bind(this));
-        xhr.addEventListener("error", uploadError.bind(this));
-        xhr.addEventListener("abort", uploadAbort.bind(this));
-
-        //append files from queue
-        var data = new FormData();
-        var files = this.queue.splice(0, this.parallelUploads);
-        //raise event so user can manipulate xhr or data if needed
-        if (typeof this.onUploadStart == 'function') {
-            this.onUploadStart(files, xhr, data);
-        }
-        for (var x = 0; x < files.length; x++) {
-            data.append(this.name + '[' + x + ']', files[x], files[x].name);
-        }
-
-        //begin uploading
-        xhr.open(this.method, this.url);
-        xhr.send(data);
     }
 
     function uploadProgress(e) {
