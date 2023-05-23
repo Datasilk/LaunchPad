@@ -8,7 +8,7 @@
         name: 'file', //name of form field to use for files
         multipleUploads: true, //allow user to select multiple files in the file dialog
         directoryDialog: false, //allow user to select a directory instead of files
-        parallelUploads: 2, //total uploads to process at a given time
+        parallelUploads: 1, //total uploads to process at a given time
         maxFilesize: 1024 * 1024 * 10, //bytes * kilobytes * megabytes
         fileTypes: '', //filter specific file extensions
         autoUpload: true, //uploads files once selected or dropped
@@ -19,6 +19,7 @@
         thumbnailHeight: 240,
 
         //events
+        onQueueStart: null, //called when the queue starts uploading
         onUploadStart: null, //called for every upload in queue. (args = iFormFile[], xhr, FormData)
         onUploadProgress: null, //called in intervals when upload is in progress. (args = event, percent)
         onUploadComplete: null, 
@@ -48,6 +49,7 @@
         this.thumbnailHeight = options.thumbnailHeight || defaults.thumbnailHeight;
 
         //events
+        this.onQueueStart = options.onQueueStart || defaults.onQueueStart;
         this.onUploadStart = options.onUploadStart || defaults.onUploadStart;
         this.onUploadProgress = options.onUploadProgress || defaults.onUploadProgress;
         this.onUploadComplete = options.onUploadComplete || defaults.onUploadComplete;
@@ -95,17 +97,28 @@
             input.click();
         }
 
+        this.started = false;
+
         this.upload = function () {
             //creates an XHR object and uploads files in queue
             var xhr = new XMLHttpRequest();
-            xhr.addEventListener("progress", uploadProgress.bind(this));
-            xhr.addEventListener("load", uploadComplete.bind(this));
-            xhr.addEventListener("error", uploadError.bind(this));
-            xhr.addEventListener("abort", uploadAbort.bind(this));
+            xhr.upload.addEventListener("progress", uploadProgress.bind(this));
+            xhr.upload.addEventListener("load", uploadComplete.bind(this));
+            xhr.upload.addEventListener("error", uploadError.bind(this));
+            xhr.upload.addEventListener("abort", uploadAbort.bind(this));
+
+            if (this.started == false) {
+                this.started = true;
+                //raise event so user can process queue start
+                if (typeof this.onQueueStart == 'function') {
+                    this.onQueueStart.call(this);
+                }
+            }
 
             //append files from queue
             var data = new FormData();
             var files = this.queue.splice(0, this.parallelUploads);
+
             //raise event so user can manipulate xhr or data if needed
             if (typeof this.onUploadStart == 'function') {
                 this.onUploadStart(files, xhr, data);
@@ -147,7 +160,7 @@
 
             //raise event so user can process progress
             if (typeof this.onUploadProgress == 'function') {
-                this.onUploadProgress(e, perc);
+                this.onUploadProgress.call(this, e, perc);
             }
         }
     }
@@ -155,13 +168,14 @@
     function uploadComplete(e) {
         //raise event so user can process upload complete
         if (typeof this.onUploadComplete == 'function') {
-            this.onUploadComplete();
+            this.onUploadComplete.call(this);
         }
         if (this.queue.length == 0) {
             //raise event so user can process queue complete
             if (typeof this.onQueueComplete == 'function') {
-                this.onQueueComplete();
+                this.onQueueComplete.call(this);
             }
+            this.started = false;
         } else {
             this.upload();
         }
@@ -170,13 +184,14 @@
     function uploadError(e) {
         //raise event so user can process upload error
         if (typeof this.onUploadError == 'function') {
-            this.onUploadError();
+            this.onUploadError.call(this);
         }
         if (this.queue.length == 0) {
             //raise event so user can process queue complete
             if (typeof this.onQueueComplete == 'function') {
-                this.onQueueComplete();
+                this.onQueueComplete.call(this);
             }
+            this.started = false;
         } else {
             this.upload();
         }
@@ -185,13 +200,14 @@
     function uploadAbort(e) {
         //raise event so user can process upload error
         if (typeof this.onUploadAbort == 'function') {
-            this.onUploadAbort();
+            this.onUploadAbort.call(this);
         }
         if (this.queue.length == 0) {
             //raise event so user can process queue complete
             if (typeof this.onQueueComplete == 'function') {
-                this.onQueueComplete();
+                this.onQueueComplete.call(this);
             }
+            this.started = false;
         } else {
             this.upload();
         }
